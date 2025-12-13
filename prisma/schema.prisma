@@ -1,0 +1,117 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TENANT
+}
+
+model User {
+  id                   String  @id @default(uuid())
+  name                 String
+  phoneNumber          String  @unique
+  alternativeNumber    String?
+  email                String  @unique
+  companyOrCollegeName String
+  address              String
+  password             String
+  role                 Role    @default(TENANT)
+  isVerified           Boolean @default(false)
+  isActive             Boolean @default(false)
+
+  otps      Otp[]
+  bookings  Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  otpHash   String
+  expiresAt DateTime
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Floor {
+  id          String  @id @default(uuid())
+  floorNumber Int     @unique
+  rooms       Room[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoomType {
+  id          String  @id @default(uuid())
+  name        String  @unique // single, double, triple
+  bedsCount   Int
+  pricePerBed Float
+
+  rooms Room[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  floorId     String
+  roomTypeId  String
+  roomNumber  String
+  beds        Bed[]
+
+  floor     Floor     @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  roomType  RoomType  @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([floorId, roomNumber]) // Prevent duplicate room numbers on same floor
+}
+
+model Bed {
+  id         String  @id @default(uuid())
+  roomId     String
+  bedNumber  Int
+  price      Float
+  isOccupied Boolean @default(false)
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, bedNumber]) // Prevent duplicate bed numbers in same room
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  bedId     String
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("ACTIVE") // ACTIVE, CANCELLED, COMPLETED
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bed  Bed  @relation(fields: [bedId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bedId])
+}
