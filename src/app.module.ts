@@ -8,6 +8,7 @@ import { PgFloorModule } from './pg-floor/pg-floor.module';
 import { PgRoomModule } from './pg-room/pg-room.module';
 import { PgRoomTypeModule } from './pg-room-type/pg-room-type.module';
 import { PgBedModule } from './pg-bed/pg-bed.module';
+import { PgBookingModule } from './pg-booking/pg-booking.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PgBedModule } from './pg-bed/pg-bed.module';
     PgRoomModule,
     PgRoomTypeModule,
     PgBedModule,
+    PgBookingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -103,8 +103,8 @@ model Booking {
   userId    String
   bedId     String
   startDate DateTime
-  endDate   DateTime
-  status    String   @default("ACTIVE") // ACTIVE, CANCELLED, COMPLETED
+  endDate   DateTime?
+  status    String   @default("ACTIVE") // ACTIVE, COMPLETED
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   bed  Bed  @relation(fields: [bedId], references: [id], onDelete: Cascade)
