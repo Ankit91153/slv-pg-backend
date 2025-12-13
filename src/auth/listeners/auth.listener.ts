@@ -7,18 +7,22 @@ import { generateOtp, hashOtp } from 'src/common/utils/otp.util';
 
 @Injectable()
 export class AuthListener {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   @OnEvent('user.registered', { async: true })
   async handleUserRegistered(event: UserRegisteredEvent) {
     const otp = generateOtp();
     const otpHash = await hashOtp(otp);
 
+    console.log(otp, "OTP");
+    console.log(otpHash, "OTP Hash");
+
     //  delete old OTPs
     await this.prisma.otp.deleteMany({
       where: { userId: event.userId },
     });
 
+    console.log(event.userId, "User ID");
     //  Save hashed OTP
     await this.prisma.otp.create({
       data: {
@@ -28,6 +32,7 @@ export class AuthListener {
       },
     });
 
+    console.log(event.email, "Email");
     //  Send plain OTP to email
     await sendEmail(
       event.email,

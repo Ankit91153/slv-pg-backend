@@ -11,9 +11,13 @@ interface TokenPayload {
 
 export function createToken(payload: TokenPayload): string {
   // 30 days in seconds
-  const expiresIn = 30 * 24 * 60 * 60; 
+  const expiresIn = 30 * 24 * 60 * 60;
 
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn });
 
   return token;
 }
+
+export function verifyToken(token: string): TokenPayload {
+  return jwt.verify(token, JWT_SECRET) as TokenPayload;
+} 

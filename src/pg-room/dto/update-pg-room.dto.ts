@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/swagger';
 import { CreatePgRoomDto } from './create-pg-room.dto';
 
-export class UpdatePgRoomDto extends PartialType(CreatePgRoomDto) {}
+export class UpdatePgRoomDto extends PartialType(CreatePgRoomDto) { }

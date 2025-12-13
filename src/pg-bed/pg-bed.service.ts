@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreatePgBedDto } from './dto/create-pg-bed.dto';
 import { UpdatePgBedDto } from './dto/update-pg-bed.dto';
 
 @Injectable()
 export class PgBedService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreatePgBedDto) {
     const room = await this.prisma.room.findUnique({
@@ -55,20 +55,13 @@ export class PgBedService {
     });
   }
 
-  findAll() {
-    return this.prisma.bed.findMany({
-      include: {
-        room: {
-          include: {
-            floor: true,
-            roomType: true,
-          },
-        },
-      },
-      orderBy: {
-        bedNumber: 'asc',
-      },
-    });
+  async findAll() {
+    const allBeds = await this.prisma.bed.findMany();
+    if (!allBeds) throw new NotFoundException('No beds found');
+    return {
+      data: allBeds,
+      message: 'Beds fetched successfully',
+    };
   }
 
   findOne(id: string) {

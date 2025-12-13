@@ -4,11 +4,11 @@ import { CreatePgFloorDto, UpdatePgFloorDto } from './dto/pg-floor.dto';
 
 @Injectable()
 export class PgFloorService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(createPgFloorDto: CreatePgFloorDto) {
     const existingFloor = await this.prisma.floor.findUnique({
-      where: { floorNumber: createPgFloorDto.floorNumber },
+      where: { floorNumber: Number(createPgFloorDto?.floorNumber) },
     });
 
     if (existingFloor) {
@@ -23,13 +23,12 @@ export class PgFloorService {
   }
 
   async findAll() {
-    return this.prisma.floor.findMany({
-      include: {
-        rooms: {
-          include: { roomType: true, beds: true },
-        },
-      },
-    });
+    const allFloors = await this.prisma.floor.findMany();
+    if (!allFloors) throw new NotFoundException('No floors found');
+    return {
+      data: allFloors,
+      message: 'Floors fetched successfully',
+    };
   }
 
   async findOne(id: string) {

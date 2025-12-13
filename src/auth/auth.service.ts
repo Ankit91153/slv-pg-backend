@@ -17,7 +17,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async register(registerUserDto: RegisterUserDto) {
     const {
@@ -36,16 +36,37 @@ export class AuthService {
       },
     });
 
+    // 🔁 If user exists
     if (existingUser) {
-      if (existingUser.email === email && existingUser.isVerified) {
-        throw new BadRequestException('Email already exists');
+      if (existingUser.isVerified) {
+        if (existingUser.email === email) {
+          throw new BadRequestException('Email already exists');
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          throw new BadRequestException('Phone number already exists');
+        }
       }
-      if (existingUser.phoneNumber === phoneNumber) {
-        throw new BadRequestException('Phone number already exists');
-      }
-    }
-    console.log(existingUser);
 
+      // Not verified → resend OTP
+      this.eventEmitter.emit(
+        'user.registered',
+        new UserRegisteredEvent(
+          existingUser.id,
+          existingUser.email,
+          existingUser.name,
+        ),
+      );
+
+      return {
+        message: 'OTP resent successfully',
+        data: {
+          id: existingUser.id,
+          email: existingUser.email,
+        },
+      };
+    }
+
+    // 🆕 Create user
     const hashedPassword = await hashPassword(password);
 
     const user = await this.prisma.user.create({
@@ -57,6 +78,7 @@ export class AuthService {
         companyOrCollegeName,
         address,
         password: hashedPassword,
+        isVerified: false,
       },
       select: {
         id: true,
@@ -77,6 +99,7 @@ export class AuthService {
       data: user,
     };
   }
+
 
   async verifyEmailOtp(verifyOtpDto: VerifyOtpDto) {
     const { userId, otp } = verifyOtpDto;
@@ -145,6 +168,9 @@ export class AuthService {
     if (!existingUser) {
       throw new BadRequestException('Email not register please Register first');
     }
+    if (!existingUser.isVerified) {
+      throw new BadRequestException('Email not verified please verify first');
+    }
 
     const isPasswordMatch = await comparePassword(
       password,
@@ -177,6 +203,11 @@ export class AuthService {
           role: existingUser?.role,
         },
       },
+    };
+  }
+  async logout() {
+    return {
+      message: 'Logout successful',
     };
   }
 }

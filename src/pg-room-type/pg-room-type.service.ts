@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreatePgRoomTypeDto, RoomTypeName } from './dto/create-pg-room-type.dto';
 import { UpdatePgRoomTypeDto } from './dto/update-pg-room-type.dto';
 
 @Injectable()
 export class PgRoomTypeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private getBedsCount(type: RoomTypeName): number {
     switch (type) {
@@ -40,11 +40,13 @@ export class PgRoomTypeService {
     });
   }
 
-  findAll() {
-    return this.prisma.roomType.findMany({
-      include: { rooms: true },
-      orderBy: { bedsCount: 'asc' },
-    });
+  async findAll() {
+    const allRoomTypes = await this.prisma.roomType.findMany();
+    if (!allRoomTypes) throw new NotFoundException('No floors found');
+    return {
+      data: allRoomTypes,
+      message: 'Floors fetched successfully',
+    };
   }
 
   findOne(id: string) {
