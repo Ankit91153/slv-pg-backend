@@ -1,22 +1,14 @@
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async (
   to: string,
   subject: string,
   html: string,
 ) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  await transporter.sendMail({
-    from: `"My App" <${process.env.SMTP_USER}>`,
+  return resend.emails.send({
+    from: 'My App <onboarding@resend.dev>', // free tier sender
     to,
     subject,
     html,
