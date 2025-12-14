@@ -5,46 +5,46 @@ import { UpdatePgBookingDto } from './dto/update-pg-booking.dto';
 
 @Injectable()
 export class PgBookingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-async create(dto: CreatePgBookingDto) {
-  const { userId, bedId, startDate } = dto;
+  async create(dto: CreatePgBookingDto) {
+    const { userId, bedId, startDate } = dto;
 
-  const bed = await this.prisma.bed.findUnique({
-    where: { id: bedId },
-  });
+    const bed = await this.prisma.bed.findUnique({
+      where: { id: bedId },
+    });
 
-  if (!bed || bed.isOccupied) {
-    throw new BadRequestException('Bed not available');
+    if (!bed || bed.isOccupied) {
+      throw new BadRequestException('Bed not available');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const booking = await tx.booking.create({
+        data: {
+          userId,
+          bedId,
+          startDate: new Date(startDate),
+          status: 'ACTIVE',
+        },
+      });
+
+      await tx.bed.update({
+        where: { id: bedId },
+        data: { isOccupied: true },
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { isActive: true },
+      });
+
+      return booking;
+    });
   }
 
-  return this.prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.create({
-      data: {
-        userId,
-        bedId,
-        startDate: new Date(startDate),
-        status: 'ACTIVE',
-      },
-    });
 
-    await tx.bed.update({
-      where: { id: bedId },
-      data: { isOccupied: true },
-    });
-
-    await tx.user.update({
-      where: { id: userId },
-      data: { isActive: true },
-    });
-
-    return booking;
-  });
-}
-
-
-  findAll() {
-    return this.prisma.booking.findMany({
+  async findAll() {
+    const bookings = await this.prisma.booking.findMany({
       include: {
         user: true,
         bed: {
@@ -60,6 +60,29 @@ async create(dto: CreatePgBookingDto) {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Format the response to include relevant information
+    const formattedBookings = bookings.map((booking) => ({
+      id: booking.id,
+      userName: booking.user.name,
+      userEmail: booking.user.email,
+      userPhone: booking.user.phoneNumber,
+      bedNumber: booking.bed.bedNumber,
+      roomNumber: booking.bed.room.roomNumber,
+      floorNumber: booking.bed.room.floor.floorNumber,
+      roomType: booking.bed.room.roomType.name,
+      bedPrice: booking.bed.price,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      status: booking.status,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+    }));
+
+    return {
+      data: formattedBookings,
+      message: 'Bookings fetched successfully',
+    };
   }
 
   findOne(id: string) {
@@ -130,31 +153,31 @@ async create(dto: CreatePgBookingDto) {
   }
 
   async completeBooking(bookingId: string) {
-  const booking = await this.prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
-
-  if (!booking || booking.status !== 'ACTIVE') {
-    throw new BadRequestException('Invalid booking');
-  }
-
-  return this.prisma.$transaction([
-    this.prisma.booking.update({
+    const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      data: {
-        endDate: new Date(),
-        status: 'COMPLETED',
-      },
-    }),
-    this.prisma.bed.update({
-      where: { id: booking.bedId },
-      data: { isOccupied: false },
-    }),
-    this.prisma.user.update({
-      where: { id: booking.userId },
-      data: { isActive: false },
-    }),
-  ]);
-}
+    });
+
+    if (!booking || booking.status !== 'ACTIVE') {
+      throw new BadRequestException('Invalid booking');
+    }
+
+    return this.prisma.$transaction([
+      this.prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          endDate: new Date(),
+          status: 'COMPLETED',
+        },
+      }),
+      this.prisma.bed.update({
+        where: { id: booking.bedId },
+        data: { isOccupied: false },
+      }),
+      this.prisma.user.update({
+        where: { id: booking.userId },
+        data: { isActive: false },
+      }),
+    ]);
+  }
 
 }

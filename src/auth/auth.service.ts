@@ -210,4 +210,34 @@ export class AuthService {
       message: 'Logout successful',
     };
   }
+
+  async getAllTenantUsers() {
+    const tenants = await this.prisma.user.findMany({
+      where: {
+        role: 'TENANT',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        alternativeNumber: true,
+        companyOrCollegeName: true,
+        address: true,
+        role: true,
+        isVerified: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return {
+      data: tenants,
+      message: 'Tenant users fetched successfully',
+    };
+  }
 }

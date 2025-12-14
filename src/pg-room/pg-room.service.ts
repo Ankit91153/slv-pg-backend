@@ -62,6 +62,40 @@ export class PgRoomService {
     };
   }
 
+  async findAvailableRooms() {
+    const rooms = await this.prisma.room.findMany({
+      include: {
+        floor: true,
+        roomType: true,
+        beds: true,
+      },
+    });
+
+    // Filter and map rooms to show only those with available bed capacity
+    const availableRooms = rooms
+      .map((room) => {
+        const totalBeds = room.roomType.bedsCount;
+        const currentBeds = room.beds.length;
+        const availableBeds = totalBeds - currentBeds;
+
+        return {
+          id: room.id,
+          roomNumber: room.roomNumber,
+          floorNumber: room.floor.floorNumber,
+          roomTypeName: room.roomType.name,
+          totalBeds,
+          currentBeds,
+          availableBeds,
+        };
+      })
+      .filter((room) => room.availableBeds > 0); // Only show rooms with available capacity
+
+    return {
+      data: availableRooms,
+      message: 'Available rooms fetched successfully',
+    };
+  }
+
   findOne(id: string) {
     return this.prisma.room.findUnique({
       where: { id },

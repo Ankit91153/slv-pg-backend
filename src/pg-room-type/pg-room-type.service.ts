@@ -1,31 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { CreatePgRoomTypeDto, RoomTypeName } from './dto/create-pg-room-type.dto';
+import { CreatePgRoomTypeDto } from './dto/create-pg-room-type.dto';
 import { UpdatePgRoomTypeDto } from './dto/update-pg-room-type.dto';
 
 @Injectable()
 export class PgRoomTypeService {
   constructor(private readonly prisma: PrismaService) { }
 
-  private getBedsCount(type: RoomTypeName): number {
-    switch (type) {
-      case RoomTypeName.SINGLE:
-        return 1;
-      case RoomTypeName.DOUBLE:
-        return 2;
-      case RoomTypeName.TRIPLE:
-        return 3;
-      default:
-        throw new BadRequestException('Invalid room type');
-    }
-  }
-
   async create(dto: CreatePgRoomTypeDto) {
-    const bedsCount = this.getBedsCount(dto.name);
-
     // Prevent duplicate room types
     const exists = await this.prisma.roomType.findUnique({
-      where: { name: dto.name },
+      where: { name: dto.name.toUpperCase() },
     });
     if (exists) {
       throw new BadRequestException('Room type already exists');
@@ -33,8 +18,8 @@ export class PgRoomTypeService {
 
     return this.prisma.roomType.create({
       data: {
-        name: dto.name,
-        bedsCount,
+        name: dto.name.toUpperCase(),
+        bedsCount: dto.bedsCount,
         pricePerBed: dto.pricePerBed,
       },
     });
@@ -42,10 +27,10 @@ export class PgRoomTypeService {
 
   async findAll() {
     const allRoomTypes = await this.prisma.roomType.findMany();
-    if (!allRoomTypes) throw new NotFoundException('No floors found');
+    if (!allRoomTypes) throw new NotFoundException('No room types found');
     return {
       data: allRoomTypes,
-      message: 'Floors fetched successfully',
+      message: 'Room types fetched successfully',
     };
   }
 
@@ -62,17 +47,11 @@ export class PgRoomTypeService {
       throw new BadRequestException('Room type not found');
     }
 
-    let bedsCount = roomType.bedsCount;
-
-    if (dto.name) {
-      bedsCount = this.getBedsCount(dto.name);
-    }
-
     return this.prisma.roomType.update({
       where: { id },
       data: {
         name: dto.name,
-        bedsCount,
+        bedsCount: dto.bedsCount,
         pricePerBed: dto.pricePerBed,
       },
     });

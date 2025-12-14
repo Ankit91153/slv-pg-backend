@@ -10,6 +10,7 @@ import { PgRoomTypeModule } from './pg-room-type/pg-room-type.module';
 import { PgBedModule } from './pg-bed/pg-bed.module';
 import { PgBookingModule } from './pg-booking/pg-booking.module';
 import { AuthMiddleware } from './common/middleware/auth.middleware';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthMiddleware } from './common/middleware/auth.middleware';
     PgRoomTypeModule,
     PgBedModule,
     PgBookingModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

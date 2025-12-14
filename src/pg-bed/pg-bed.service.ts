@@ -55,12 +55,120 @@ export class PgBedService {
     });
   }
 
-  async findAll() {
-    const allBeds = await this.prisma.bed.findMany();
-    if (!allBeds) throw new NotFoundException('No beds found');
+  async findAll(floorNumber?: string, roomType?: string) {
+    // Build the where clause based on filters
+    const where: any = {};
+
+    // If floor number filter is provided
+    if (floorNumber) {
+      where.room = {
+        floor: {
+          floorNumber: parseInt(floorNumber),
+        },
+      };
+    }
+
+    // If room type filter is provided
+    if (roomType) {
+      where.room = {
+        ...where.room,
+        roomType: {
+          name: roomType.toUpperCase(),
+        },
+      };
+    }
+
+    const allBeds = await this.prisma.bed.findMany({
+      where,
+      include: {
+        room: {
+          include: {
+            floor: true,
+            roomType: true,
+          },
+        },
+      },
+      orderBy: [
+        { room: { floor: { floorNumber: 'asc' } } },
+        { room: { roomNumber: 'asc' } },
+        { bedNumber: 'asc' },
+      ],
+    });
+
+    if (!allBeds || allBeds.length === 0) {
+      throw new NotFoundException('No beds found');
+    }
+
+    // Map the data to include room and floor information
+    const formattedBeds = allBeds.map((bed) => ({
+      id: bed.id,
+      bedNumber: bed.bedNumber,
+      price: bed.price,
+      isOccupied: bed.isOccupied,
+      roomNumber: bed.room.roomNumber,
+      floorNumber: bed.room.floor.floorNumber,
+      roomType: bed.room.roomType.name,
+      createdAt: bed.createdAt,
+      updatedAt: bed.updatedAt,
+    }));
+
     return {
-      data: allBeds,
+      data: formattedBeds,
       message: 'Beds fetched successfully',
+    };
+  }
+
+  async findAvailableBedsByRoomType(roomType?: string) {
+    const where: any = {
+      isOccupied: false, // Only get available beds
+    };
+
+    // Filter by room type if provided
+    if (roomType) {
+      where.room = {
+        roomType: {
+          name: roomType.toUpperCase(),
+        },
+      };
+    }
+
+    const availableBeds = await this.prisma.bed.findMany({
+      where,
+      include: {
+        room: {
+          include: {
+            floor: true,
+            roomType: true,
+          },
+        },
+      },
+      orderBy: [
+        { room: { floor: { floorNumber: 'asc' } } },
+        { room: { roomNumber: 'asc' } },
+        { bedNumber: 'asc' },
+      ],
+    });
+
+    if (!availableBeds || availableBeds.length === 0) {
+      throw new NotFoundException('No available beds found');
+    }
+
+    // Map to include relevant information
+    const formattedBeds = availableBeds.map((bed) => ({
+      id: bed.id,
+      bedNumber: bed.bedNumber,
+      bedName: `Bed ${bed.bedNumber}`,
+      price: bed.price,
+      roomNumber: bed.room.roomNumber,
+      roomName: `Room ${bed.room.roomNumber}`,
+      floorNumber: bed.room.floor.floorNumber,
+      roomType: bed.room.roomType.name,
+      roomTypeBedsCount: bed.room.roomType.bedsCount,
+    }));
+
+    return {
+      data: formattedBeds,
+      message: 'Available beds fetched successfully',
     };
   }
 

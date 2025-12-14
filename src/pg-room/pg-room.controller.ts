@@ -29,6 +29,16 @@ export class PgRoomController {
     return this.pgRoomService.findAll();
   }
 
+  @Get('available')
+  @ApiOperation({ summary: 'Get rooms with available bed capacity' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return rooms that can still accept more beds with bed availability details.'
+  })
+  findAvailableRooms() {
+    return this.pgRoomService.findAvailableRooms();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a room by ID' })
   @ApiParam({ name: 'id', description: 'Room ID' })

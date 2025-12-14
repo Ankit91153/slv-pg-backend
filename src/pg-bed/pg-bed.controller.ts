@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { PgBedService } from './pg-bed.service';
 import { CreatePgBedDto } from './dto/create-pg-bed.dto';
 import { UpdatePgBedDto } from './dto/update-pg-bed.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { FindAllBedsQueryDto } from './dto/find-all-beds-query.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Role } from '../common/enums/role.enum';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -23,10 +24,23 @@ export class PgBedController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all beds' })
-  @ApiResponse({ status: 200, description: 'Return all beds.' })
-  findAll() {
-    return this.pgBedService.findAll();
+  @ApiOperation({ summary: 'Get all beds with optional filters' })
+  @ApiQuery({ name: 'floorNumber', required: false, description: 'Filter by floor number' })
+  @ApiQuery({ name: 'roomType', required: false, description: 'Filter by room type (e.g., SINGLE, DOUBLE, TRIPLE)' })
+  @ApiResponse({ status: 200, description: 'Return all beds with room and floor information.' })
+  findAll(@Query() query: FindAllBedsQueryDto) {
+    return this.pgBedService.findAll(query.floorNumber, query.roomType);
+  }
+
+  @Get('available')
+  @ApiOperation({ summary: 'Get available beds with optional room type filter' })
+  @ApiQuery({ name: 'roomType', required: false, description: 'Filter by room type (e.g., SINGLE, DOUBLE, TRIPLE)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all available (unoccupied) beds with bed name, room name, floor number, and room type details.'
+  })
+  findAvailableBedsByRoomType(@Query('roomType') roomType?: string) {
+    return this.pgBedService.findAvailableBedsByRoomType(roomType);
   }
 
   @Get(':id')
