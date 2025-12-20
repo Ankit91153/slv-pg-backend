@@ -1,0 +1,8 @@
+# railway.toml
+
+[build]
+# Use npm install instead of npm ci
+build_command = "npm install && npx prisma generate && npm run build"
+
+[deploy]
+start_command = "node dist/main.js"
