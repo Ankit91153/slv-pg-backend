@@ -43,5 +43,6 @@ export class AuthListener {
         <p>This OTP is valid for 5 minutes.</p>
       `,
     );
+    console.log("Email sent successfully");
   }
 }

@@ -57,7 +57,8 @@ export const ModelName = {
   RoomType: 'RoomType',
   Room: 'Room',
   Bed: 'Bed',
-  Booking: 'Booking'
+  Booking: 'Booking',
+  Complaint: 'Complaint'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -86,6 +87,8 @@ export const UserScalarFieldEnum = {
   address: 'address',
   password: 'password',
   role: 'role',
+  guardianName: 'guardianName',
+  guardianPhone: 'guardianPhone',
   isVerified: 'isVerified',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -165,6 +168,19 @@ export const BookingScalarFieldEnum = {
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
+
+
+export const ComplaintScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ComplaintScalarFieldEnum = (typeof ComplaintScalarFieldEnum)[keyof typeof ComplaintScalarFieldEnum]
 
 
 export const SortOrder = {

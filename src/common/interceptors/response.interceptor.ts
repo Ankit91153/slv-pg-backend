@@ -27,7 +27,7 @@ export class ResponseInterceptor<T>
         message: data?.message
           ? data.message
           : 'Request successful',
-        data: data?.data !== undefined ? data.data : null,
+        data: data?.data !== undefined ? data.data : data,
       })),
     );
   }

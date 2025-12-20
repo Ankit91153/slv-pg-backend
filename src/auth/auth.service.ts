@@ -28,14 +28,17 @@ export class AuthService {
       companyOrCollegeName,
       address,
       password,
+      guardianName,
+      guardianPhone,
     } = registerUserDto;
+    console.log(registerUserDto);
 
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [{ email }, { phoneNumber }],
       },
     });
-
+    console.log(1);
     // 🔁 If user exists
     if (existingUser) {
       if (existingUser.isVerified) {
@@ -56,7 +59,7 @@ export class AuthService {
           existingUser.name,
         ),
       );
-
+      console.log(12);
       return {
         message: 'OTP resent successfully',
         data: {
@@ -77,6 +80,8 @@ export class AuthService {
         email,
         companyOrCollegeName,
         address,
+        guardianName,
+        guardianPhone,
         password: hashedPassword,
         isVerified: false,
       },
@@ -224,6 +229,8 @@ export class AuthService {
         alternativeNumber: true,
         companyOrCollegeName: true,
         address: true,
+        guardianName: true,
+        guardianPhone: true,
         role: true,
         isVerified: true,
         isActive: true,

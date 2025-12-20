@@ -72,3 +72,8 @@ export type Bed = Prisma.BedModel
  * 
  */
 export type Booking = Prisma.BookingModel
+/**
+ * Model Complaint
+ * 
+ */
+export type Complaint = Prisma.ComplaintModel

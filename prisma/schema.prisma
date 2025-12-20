@@ -6,6 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -23,11 +24,14 @@ model User {
   address              String
   password             String
   role                 Role    @default(TENANT)
+  guardianName         String?
+  guardianPhone        String?
   isVerified           Boolean @default(false)
   isActive             Boolean @default(false)
 
   otps      Otp[]
   bookings  Booking[]
+  complaints Complaint[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -114,4 +118,17 @@ model Booking {
 
   @@index([userId])
   @@index([bedId])
+}
+
+model Complaint {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, RESOLVED
+  userId      String
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

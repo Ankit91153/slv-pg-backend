@@ -42,6 +42,7 @@ export class PgRoomService {
     const bedsData = Array.from({ length: roomType.bedsCount }).map((_, i) => ({
       roomId: room.id,
       bedNumber: i + 1,
+      name: `${room.roomNumber}${String.fromCharCode(65 + i)}`, // 101A, 101B...
       price: roomType.pricePerBed,
     }));
 
@@ -87,8 +88,7 @@ export class PgRoomService {
           currentBeds,
           availableBeds,
         };
-      })
-      .filter((room) => room.availableBeds > 0); // Only show rooms with available capacity
+      });
 
     return {
       data: availableRooms,

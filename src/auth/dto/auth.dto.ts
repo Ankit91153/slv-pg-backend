@@ -48,6 +48,16 @@ export class RegisterUserDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @ApiProperty({ example: 'John Guardian', description: 'Name of the guardian' })
+  @IsString()
+  @IsNotEmpty({ message: 'Guardian Name is required' })
+  guardianName: string;
+
+  @ApiProperty({ example: '+1234567890', description: 'Phone number of the guardian' })
+  @IsString()
+  @IsNotEmpty({ message: 'Guardian Phone number is required' })
+  guardianPhone: string;
 }
 
 export class VerifyOtpDto {

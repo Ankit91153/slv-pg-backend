@@ -11,6 +11,7 @@ import { PgBedModule } from './pg-bed/pg-bed.module';
 import { PgBookingModule } from './pg-booking/pg-booking.module';
 import { AuthMiddleware } from './common/middleware/auth.middleware';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ComplaintModule } from './complaint/complaint.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     PgBedModule,
     PgBookingModule,
     DashboardModule,
+    ComplaintModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -45,7 +47,9 @@ export class AppModule implements NestModule {
         { path: 'pg-floor', method: RequestMethod.ALL },
         { path: 'pg-room', method: RequestMethod.ALL },
         { path: 'pg-room-type', method: RequestMethod.ALL },
+        { path: 'pg-room-type', method: RequestMethod.ALL },
         { path: 'auth/logout', method: RequestMethod.POST },
+        { path: 'complaints', method: RequestMethod.ALL },
       );
   }
 }
